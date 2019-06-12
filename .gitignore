@@ -1,0 +1,9 @@
+# files
+*.pyc
+# folders
+logs/
+influxdb/
+chronograf/
+data/
+influxdb/
+prometheus/
