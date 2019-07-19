@@ -15,7 +15,7 @@ paths = ['./conf/conf.toml', './lua/enque_script.lua', './plugins/your_plugin.py
     unit = 's'
 
         [user_conf.handler.tags]
-        eqpt_no = '10001'
+        eqpt_no = '1'
 
 
 [sender]

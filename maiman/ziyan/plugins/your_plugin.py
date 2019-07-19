@@ -19,9 +19,15 @@ class MyCheck(Check):
         :return: the data you requested.
         """
         data = {
-            "temperature": round(random.uniform(20.0, 30.0),2),
-            "status": random.randint(0,1),
-            "warning": "warning_msg",
+            "1#_liquid_level": random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+            "1#_temperature": round(random.uniform(30, 70), 1),
+            "1#_pressure": round(random.uniform(1, 5), 1),
+            "1#_PH_value": round(random.uniform(3, 6.9), 1),
+            "1#_conductivity": round(random.uniform(500, 1000), 1),
+            "1#_medicinal_reserves": 100,
+            "1#_instrument_life": 10000,
+            "1#_dosing_pump_a_status": 1,
+            "1#_dosing_pump_b_status": 1,
         }
         log.debug('%s', data)
         time.sleep(2)
@@ -55,8 +61,8 @@ class MyHandler(Handler):
         'table_name',[str]   optional
         'timestamp',int}      optional
 
-        :param raw_data: 
-        :return: 
+        :param raw_data:
+        :return:
         """
         # exmple.
         # 数据经过处理之后生成 value_list

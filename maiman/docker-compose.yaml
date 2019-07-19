@@ -80,19 +80,6 @@ services:
     networks: 
       - back
   
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    privileged: true
-    ports:
-      - "9099:9090"
-    volumes:
-      - ./prometheus:/prometheus
-    working_dir: /prometheus
-    command: --config.file=prometheus-docker.yml
-    restart: always
-    networks:
-      - back
 
 networks:
   back:
