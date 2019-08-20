@@ -5,7 +5,43 @@ paths = ['./conf/conf.toml', './lua/enque_script.lua', './plugins/your_plugin.py
 
 [user_conf]
     [user_conf.check]
-    # check config
+        # check config
+        address = '192.168.0.1'
+        rack = 0
+        slot = 0
+        tcpport = 102
+        db_number = 100
+
+        sep = '#'
+        groups = 15
+        # groups = 3
+
+        [user_conf.check.Real]
+            names = [
+                '_liquid_level',
+                '_temperature',
+                '_pressure',
+                '_PH_value',
+                '_conductivity',
+                '_medicinal_reserves',
+                '_instrument_life',
+            ]
+            points = [
+                0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360, 390, 420,
+                # 0, 30, 60,
+            ]
+            data_size = 28
+        [user_conf.check.Bool]
+            names = [
+                '_dosing_pump_a_status',
+                '_dosing_pump_b_status',
+            ]
+            points = [
+                28, 58, 88, 118, 148, 178, 208, 238,
+                268, 298, 328, 358, 388, 418, 448,
+                # 28, 58, 88,
+            ]
+            data_size = 1
 
     [user_conf.handler]
     # handler config
@@ -15,7 +51,7 @@ paths = ['./conf/conf.toml', './lua/enque_script.lua', './plugins/your_plugin.py
     unit = 's'
 
         [user_conf.handler.tags]
-        eqpt_no = '1'
+        eqpt_no = '10001'
 
 
 [sender]

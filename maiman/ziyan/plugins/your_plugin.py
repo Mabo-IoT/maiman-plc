@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-import time
 import random
+import time
 from logging import getLogger
+
+import snap7
+from snap7 import util
+from snap7.snap7exceptions import Snap7Exception
 
 from Doctopus.Doctopus_main import Check, Handler
 
@@ -11,6 +15,101 @@ log = getLogger('Doctopus.plugins')
 class MyCheck(Check):
     def __init__(self, configuration):
         super(MyCheck, self).__init__(configuration=configuration)
+        self.conf = conf = configuration
+        self.check_conf = check_conf = conf['user_conf']['check']
+
+        # connection info
+        address = check_conf.get('address', '127.0.0.1')
+        rack = check_conf.get('rack', 0)
+        slot = check_conf.get('slot', 0)
+        tcpport = check_conf.get('tcpport', 102)
+        self.db_number = check_conf.get('db_number', 100)
+
+        self.sep = check_conf.get('sep', '#')
+        self.groups = check_conf.get('groups', 1)
+
+        # Real
+        self.real_points = check_conf['Real'].get('points', [0])
+        self.real_names = check_conf['Real'].get('names', [])
+        self.real_data_size = check_conf['Real'].get('data_size', 28)
+
+        # Bool
+        self.bool_points = check_conf['Bool'].get('points', [28])
+        self.bool_names = check_conf['Bool'].get('names', [])
+        self.bool_data_size = check_conf['Bool'].get('data_size', 1)
+
+        # create client
+        self.client = snap7.client.Client()
+        try:
+            self.client.connect(address, rack, slot, tcpport)
+        except Snap7Exception as err:
+            log.error(err)
+
+    def get_real(self):
+        """get Real type data
+        :returns: real_list: list
+
+        """
+        real_list = []
+
+        for point in self.real_points:
+            try:
+                data = self.client.db_read(db_number=self.db_number, start=point,
+                                           size=self.real_data_size)
+            except Exception as err:
+                log.warn(err)
+            else:
+                for index in range(0, self.real_data_size-1, 4):
+                    real_data = util.get_real(_bytearray=data, byte_index=index)
+                    real_list.append(real_data)
+
+        return real_list
+
+    def get_bool(self):
+        """get Bool type data
+        :returns: bool_list: list
+
+        """
+        bool_list = []
+
+        for point in self.bool_points:
+            try:
+                data = self.client.db_read(db_number=self.db_number, start=point,
+                                           size=self.bool_data_size)
+            except Exception as err:
+                log.warn(err)
+            else:
+                for index in range(0, 2):
+                    bool_data = util.get_bool(_bytearray=data, byte_index=0,
+                                              bool_index=index)
+                    bool_list.append(bool_data)
+
+        return bool_list
+
+    def process_data(self):
+        """data processing
+        :returns: data: dict
+
+        """
+        real_list = self.get_real()
+        bool_list = self.get_bool()
+
+        real_full_names = []
+        bool_full_names = []
+        for group in range(1, self.groups):
+            for name in self.real_names:
+                real_fullname = '{}{}{}'.format(group, self.sep, name)
+                real_full_names.append(real_fullname)
+            for name in self.bool_names:
+                bool_fullname = '{}{}{}'.format(group, self.sep, name)
+                bool_full_names.append(bool_fullname)
+
+        real_dict = dict(zip(real_full_names, real_list))
+        bool_dict = dict(zip(bool_full_names, bool_list))
+
+        data = dict(real_dict, **bool_dict)
+
+        return data
 
     def user_check(self):
         """
@@ -18,17 +117,7 @@ class MyCheck(Check):
         :param command: user defined parameter.
         :return: the data you requested.
         """
-        data = {
-            "1#_liquid_level": random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-            "1#_temperature": round(random.uniform(30, 70), 1),
-            "1#_pressure": round(random.uniform(1, 5), 1),
-            "1#_PH_value": round(random.uniform(3, 6.9), 1),
-            "1#_conductivity": round(random.uniform(500, 1000), 1),
-            "1#_medicinal_reserves": 100,
-            "1#_instrument_life": 10000,
-            "1#_dosing_pump_a_status": 1,
-            "1#_dosing_pump_b_status": 1,
-        }
+        data = self.process_data()
         log.debug('%s', data)
         time.sleep(2)
         yield data
