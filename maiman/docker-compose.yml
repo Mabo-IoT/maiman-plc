@@ -1,0 +1,101 @@
+# Author: YJ
+# Email: yj1516268@outlook.com
+# Created Time: 2019-06-20 11:39:45
+
+#  <- 麦满PLC ->
+
+version: '3.7'
+services:
+  redis:
+    image: 'redis'
+    container_name: 'redis-mindman'
+    restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
+    privileged: false
+    volumes:
+      - 'redis:/data'
+    networks:
+      mindman: {}
+    environment:
+      TZ: 'Asia/Shanghai'
+  chitu:
+    image: '10.7.0.117:9095/mabo_group/base_application/doctopus_chitu'
+    container_name: 'chitu'
+    restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
+    privileged: false
+    working_dir: '/usr/mabo/chitu'
+    command: 'python manage.py -t chitu'
+    depends_on:
+      - 'redis'
+    volumes:
+      - './chitu:/usr/mabo/chitu'
+    networks:
+      mindman: {}
+    environment:
+      TZ: 'Asia/Shanghai'
+  ziyan:
+    image: '10.7.0.117:9095/mabo_group/base_application/doctopus_ziyan'
+    container_name: 'ziyan'
+    stdin_open: true
+    restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
+    privileged: false
+    working_dir: '/usr/mabo/ziyan'
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cp -f ./lib/libsnap7.so /usr/lib && cp ./lib/client.py /usr/local/lib/python3.7/site-packages/snap7/client.py
+        python manage.py -t ziyan
+    depends_on:
+      - 'redis'
+    volumes:
+      - './ziyan:/usr/mabo/ziyan'
+    networks:
+      mindman: {}
+    environment:
+      TZ: 'Asia/Shanghai'
+  influxdb:
+    image: 'influxdb'
+    container_name: 'influxdb'
+    restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
+    privileged: false
+    volumes:
+      - 'influxdb:/var/lib/influxdb'
+    networks:
+      mindman: {}
+    environment:
+      TZ: 'Asia/Shanghai'
+  chronograf:
+    image: 'chronograf'
+    container_name: 'chronograf'
+    restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
+    privileged: false
+    volumes:
+      - 'chronograf:/var/lib/chronograf'
+    ports:
+      - '8888:8888'
+    networks:
+      mindman: {}
+    environment:
+      TZ: 'Asia/Shanghai'
+  grafana:
+    image: 'grafana/grafana'
+    container_name: 'grafana'
+    restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
+    privileged: false
+    ports:
+      - '3000:3000'
+    networks:
+      mindman: {}
+    environment:
+      TZ: 'Asia/Shanghai'
+
+volumes:
+  redis:
+    name: 'redis-mindman'
+  influxdb:
+    name: 'influxdb-mindman'
+  chronograf:
+    name: 'chronograf-mindman'
+networks:
+  mindman:
+    name: 'mindman'
