@@ -1,37 +1,41 @@
+# File: docker-compose.yml
 # Author: YJ
 # Email: yj1516268@outlook.com
 # Created Time: 2019-06-20 11:39:45
 
-#  <- 麦满PLC ->
+# Description:  <- 麦满PLC ->
 
 version: '3.7'
 services:
   redis:
     image: 'redis'
-    container_name: 'redis-mindman'
+    container_name: 'mindman-redis'
     restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
     privileged: false
     volumes:
-      - 'redis:/data'
+      - 'mindman-redis:/data'
     networks:
       mindman: {}
     environment:
       TZ: 'Asia/Shanghai'
+
   chitu:
     image: '10.7.0.117:9095/mabo_group/base_application/doctopus_chitu'
-    container_name: 'chitu'
+    container_name: 'mindman-chitu'
     restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
     privileged: false
     working_dir: '/usr/mabo/chitu'
     command: 'python manage.py -t chitu'
     depends_on:
       - 'redis'
+      - 'influxdb'
     volumes:
-      - './chitu:/usr/mabo/chitu'
+      - 'mindman-chitu:/usr/mabo/chitu'
     networks:
       mindman: {}
     environment:
       TZ: 'Asia/Shanghai'
+
   ziyan:
     image: '10.7.0.117:9095/mabo_group/base_application/doctopus_ziyan'
     container_name: 'ziyan'
@@ -48,35 +52,38 @@ services:
     depends_on:
       - 'redis'
     volumes:
-      - './ziyan:/usr/mabo/ziyan'
+      - 'mindman-ziyan:/usr/mabo/ziyan'
     networks:
       mindman: {}
     environment:
       TZ: 'Asia/Shanghai'
+
   influxdb:
     image: 'influxdb'
     container_name: 'influxdb'
     restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
     privileged: false
     volumes:
-      - 'influxdb:/var/lib/influxdb'
+      - 'mindman-influxdb:/var/lib/influxdb'
     networks:
       mindman: {}
     environment:
       TZ: 'Asia/Shanghai'
+
   chronograf:
     image: 'chronograf'
     container_name: 'chronograf'
     restart: 'unless-stopped'    # no, unless-stopped, always, on-failure:<max-retries>
     privileged: false
     volumes:
-      - 'chronograf:/var/lib/chronograf'
+      - 'mindman-chronograf:/var/lib/chronograf'
     ports:
       - '8888:8888'
     networks:
       mindman: {}
     environment:
       TZ: 'Asia/Shanghai'
+
   grafana:
     image: 'grafana/grafana'
     container_name: 'grafana'
@@ -90,12 +97,12 @@ services:
       TZ: 'Asia/Shanghai'
 
 volumes:
-  redis:
-    name: 'redis-mindman'
-  influxdb:
-    name: 'influxdb-mindman'
-  chronograf:
-    name: 'chronograf-mindman'
+  mindman-redis:
+    name: 'mindman-redis'
+  mindman-influxdb:
+    name: 'mindman-influxdb'
+  mindman-chronograf:
+    name: 'mindman-chronograf'
 networks:
   mindman:
     name: 'mindman'
